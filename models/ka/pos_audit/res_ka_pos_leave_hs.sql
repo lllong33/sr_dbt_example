@@ -97,8 +97,10 @@ select
     ,hs.shop_cd 
     ,hs.thrd_manage_typ
     ,hs.product_cd
-    ,case when coalesce(hs.thrd_manage_typ,'')='' then null else hs.prd_cnt*t9.tz_rate end as prd_cnt -- POS-总核算剩余数量
-    ,case when coalesce(hs.thrd_manage_typ,'')='' then null else hs.prd_amt*t9.tz_rate end as prd_amt -- POS-总核算剩余金额
+    ,hs.prd_cnt as prd_cnt_raw
+    ,hs.prd_amt as prd_amt_raw
+    ,case when coalesce(hs.thrd_manage_typ,'')='' then null else hs.prd_cnt*coalesce(t9.tz_rate, 1) end as prd_cnt -- POS-总核算剩余数量
+    ,case when coalesce(hs.thrd_manage_typ,'')='' then null else hs.prd_amt*coalesce(t9.tz_rate, 1) end as prd_amt -- POS-总核算剩余金额
 from day_shop_prd_thrd_cnt_amt as hs 
 left join {{ ref('t9_sfa_residue_audit_adjust_ratio') }} as t9 
     on hs.shop_cd=t9.shop_cd 
@@ -108,6 +110,7 @@ left join {{ ref('t9_sfa_residue_audit_adjust_ratio') }} as t9
 )
 
 select * from adjust_metric
+-- where shop_cd='0005000049'
 
 
 

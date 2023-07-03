@@ -1,5 +1,7 @@
 -- temp1
 -- 团购提报、零售提报区分开
+{{ config(pre_hook="set new_planner_optimize_timeout=60000") }}
+
 with aa as (
 select  
     t1.data_dt
@@ -50,17 +52,17 @@ select
     ,aa.qrh_amt as prd_amt
     ,aa.submit_typ
 from aa 
-where not exists (select * from dim_ka_ss_sbmt_sales_fix t4 where aa.data_dt =t4.data_dt and t4.shop_cd=regexp_replace(aa.shop_cd ,'^[0]+','0'))
+where not exists (select * from dim_ka_ss_sbmt_sales_fix t4 where aa.data_dt =substr(t4.data_dt, 1, 8) and t4.shop_cd=regexp_replace(aa.shop_cd ,'^[0]+','0'))
 -- Currently only subquery of the Select type are supported
 -- 不支持not exists + union all 的方式,  改写为 join 方式
 -- 不能写 not (1=1) 方式, 会有三值的null问题
--- left join dim_ka_ss_sbmt_sales_fix t4 on aa.data_dt = t4.data_dt and aa.shop_cd=regexp_replace(t4.shop_cd ,'^[0]+','0')
--- where t4.data_dt is null
+-- left join dim_ka_ss_sbmt_sales_fix t4 on aa.data_dt = substr(t4.data_dt, 1, 8) and aa.shop_cd=regexp_replace(t4.shop_cd ,'^[0]+','0')
+-- where substr(t4.data_dt, 1, 8) is null
 
 union all 
 
 select 
-     t4.data_dt
+     substr(t4.data_dt, 1, 8) as data_dt
     ,lpad(t4.shop_cd,10,'0') as shop_cd -- 不足10位补10位
     ,t4.emp_cd
     ,t4.emp_nam
@@ -72,7 +74,7 @@ select
     ,'零售提报' as  submit_typ
 from dim_ka_ss_sbmt_sales_fix t4 
 left join dim_ka_pub_product_master_data t3 on t4.product_cd=t3.product_cd 
-where exists (select * from aa where aa.data_dt =t4.data_dt and t4.shop_cd=regexp_replace(aa.shop_cd ,'^[0]+','0'))
+where exists (select * from aa where aa.data_dt =substr(t4.data_dt, 1, 8) and t4.shop_cd=regexp_replace(aa.shop_cd ,'^[0]+','0'))
 )
 
 -- temp2
@@ -87,7 +89,7 @@ select
     ,t2.amount as prd_cnt -- 数量
     ,case when t2.is_group_buy ='是' then '团购提报' else '零售提报' end as submit_typ  -- 提报类型
 from res_ka_cxx_group_by_audit t2
-where not exists (select * from dim_ka_ss_sbmt_sales_fix t4 where t2.data_date =t4.data_dt and t2.shipper_code=t4.shop_cd)
+where not exists (select * from dim_ka_ss_sbmt_sales_fix t4 where t2.data_date =substr(t4.data_dt, 1, 8) and t2.shipper_code=t4.shop_cd)
 )
 
 -- select * from temp2 limit 100 ;
