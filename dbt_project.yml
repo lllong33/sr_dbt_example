@@ -36,6 +36,9 @@ models:
     # Config indicated by + and applies to all files under models/example/
     example:
       +materialized: view
+    ka:
+      +enabled: false 
+
 
 vars:
   start_dt: '20223-05-01'
