@@ -1,0 +1,12 @@
+
+version: 2
+
+models:
+  - name: d_ihd_org_emp_rel_dtl
+    description: "组织人员关系明细表"
+    # columns:
+      # - name: id
+      #   description: "The primary key for this table"
+        # tests:
+        #   - unique
+        #   - not_null
